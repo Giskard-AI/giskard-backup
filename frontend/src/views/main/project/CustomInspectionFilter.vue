@@ -1,6 +1,6 @@
 <template>
   <v-container class="main align-self-center">
-    <v-row align="center" v-if="!isClassification">
+    <v-row align="center" v-if="!isClassification_">
       <v-col cols="5">Predicted value is between</v-col>
       <v-col>
         <v-text-field
@@ -20,7 +20,7 @@
         ></v-text-field>
       </v-col>
     </v-row>
-    <v-row align="center" v-if="!isClassification && isTargetAvailable">
+    <v-row align="center" v-if="!isClassification_ && isTargetAvailable">
       <v-col cols="5">Actual value is between</v-col>
       <v-col>
         <v-text-field
@@ -41,7 +41,7 @@
         ></v-text-field>
       </v-col>
     </v-row>
-    <v-row align="center" v-if="!isClassification && isTargetAvailable">
+    <v-row align="center" v-if="!isClassification_ && isTargetAvailable">
       <v-col cols="5">Diff percentage value is between</v-col>
       <v-col>
         <v-text-field
@@ -71,7 +71,7 @@
         </v-text-field>
       </v-col>
     </v-row>
-    <v-row align="center" v-if="isClassification">
+    <v-row align="center" v-if="isClassification_">
       <v-col v-if="isTargetAvailable && value.targetLabel">
         <MultiSelector label='Actual Labels' :options='labels'
                        :selected-options.sync='value.targetLabel'/>
@@ -81,7 +81,7 @@
                        :selected-options.sync='value.predictedLabel'/>
       </v-col>
     </v-row>
-    <v-row align="center" v-if="isClassification">
+    <v-row align="center" v-if="isClassification_">
       <v-col>Probability of</v-col>
       <v-col cols="3">
         <v-select
@@ -118,33 +118,35 @@
   </v-container>
 </template>
 
-<script lang="ts">
-import Component from "vue-class-component";
-import Vue from "vue";
-import {Prop} from "vue-property-decorator";
+<script setup lang="ts">
+import { onMounted, defineEmits, computed, getCurrentInstance } from "vue";
 import {Filter, ModelType} from "@/generated-sources";
 import {isClassification} from "@/ml-utils";
 import MultiSelector from "@/views/main/utils/MultiSelector.vue";
 
-@Component({components: {MultiSelector}})
-export default class CustomInspectionFilter extends Vue {
-  @Prop({required: true}) modelType!: ModelType;
-  @Prop({required: true}) labels!: string[];
-  @Prop({default: false}) isTargetAvailable!: boolean;
-  @Prop() value!: Filter;
-
-  get isClassification() {
-    return isClassification(this.modelType);
-  }
-
-  mounted() {
-    this.value.predictedLabel = this.value.predictedLabel || [];
-    this.value.targetLabel = this.value.targetLabel || [];
-    this.$emit('input', this.value);
-    this.$forceUpdate();
-  }
+interface Props {
+  modelType: ModelType,
+  labels: string[],
+  isTargetAvailable: boolean,
+  value: Filter
 }
 
+const props = withDefaults(defineProps<Props>(), {
+  isTargetAvailable: false,
+});
+
+const isClassification_ = computed(() => {
+    return isClassification(props.modelType);
+});
+
+const emit = defineEmits(['input']);
+
+onMounted(() => {
+  props.value.predictedLabel = props.value.predictedLabel || [];
+  props.value.targetLabel = props.value.targetLabel || [];
+  emit('input', props.value);
+  getCurrentInstance()?.proxy?.$forceUpdate();
+});
 </script>
 
 <style scoped lang="scss">
