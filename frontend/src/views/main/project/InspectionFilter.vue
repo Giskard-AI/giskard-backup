@@ -77,11 +77,10 @@
 
 </template>
 
-<script lang="ts">
-import Component from "vue-class-component";
-import Vue from "vue";
-import {isClassification} from "@/ml-utils";
-import {Prop, Watch} from "vue-property-decorator";
+<!-- Migrate to Composition API -->
+<script setup lang="ts">
+import {ref, watch, onMounted} from "vue";
+import { isClassification } from "@/ml-utils";
 import {Filter, ModelType, RowFilterType} from "@/generated-sources";
 import CustomInspectionFilter from "./CustomInspectionFilter.vue";
 import _ from "lodash";
@@ -95,82 +94,85 @@ interface FilterType {
   description?: string;
 }
 
-@Component({components: {CustomInspectionFilter}})
-export default class InspectionFilter extends Vue {
-  RowFilterType = RowFilterType;
-  @Prop({required: true}) modelType!: ModelType;
-  @Prop({default: false}) isTargetAvailable!: boolean;
-  @Prop({required: true}) labels!: string[];
+interface Props {
+  modelType: ModelType;
+  isTargetAvailable: boolean;
+  labels: string[];
+}
 
-  menu = false;
+const props = withDefaults(defineProps<Props>(), {
+  isTargetAvailable: false
+});
 
-  @Watch('menu')
-  onMenuChange(nv) {
-    if (nv) {
-      this.dirtyFilterValue = _.cloneDeep(this.filter);
-    }
+const menu = ref(false);
+const filter = ref(initFilter());
+const dirtyFilterValue = ref(initFilter());
+
+const filterTypes: FilterType[] = [
+  {value: RowFilterType.ALL, label: 'All', description: 'Entire dataset'},
+  {
+    value: RowFilterType.CORRECT,
+    label: isClassification(props.modelType) ? 'Correct Predictions' : 'Closest predictions (top 15%)',
+    disabled: !props.isTargetAvailable,
+    description: isClassification(props.modelType) ?
+        'Predicted value is equal to actual value in dataset target column' :
+        'Top 15% of most accurate predictions'
+  },
+  {
+    value: RowFilterType.WRONG,
+    label: isClassification(props.modelType) ? 'Incorrect Predictions' : 'Most distant predictions (top 15%)',
+    disabled: !props.isTargetAvailable
+  },
+  {value: RowFilterType.BORDERLINE, label: 'Borderline', disabled: !props.isTargetAvailable},
+  {value: RowFilterType.CUSTOM, label: 'Custom'}
+];
+
+const filterTypesByKey = _.keyBy(filterTypes, e => e.value);
+
+const emit = defineEmits(['input']);
+
+watch(menu, (nv) => {
+  if (nv) {
+    dirtyFilterValue.value = _.cloneDeep(filter.value);
   }
+});
 
-
-  filterTypes: FilterType[] = [
-    {value: RowFilterType.ALL, label: 'All', description: 'Entire dataset'},
-    {
-      value: RowFilterType.CORRECT,
-      label: isClassification(this.modelType) ? 'Correct Predictions' : 'Closest predictions (top 15%)',
-      disabled: !this.isTargetAvailable,
-      description: isClassification(this.modelType) ?
-          'Predicted value is equal to actual value in dataset target column' :
-          'Top 15% of most accurate predictions'
-    },
-    {
-      value: RowFilterType.WRONG,
-      label: isClassification(this.modelType) ? 'Incorrect Predictions' : 'Most distant predictions (top 15%)',
-      disabled: !this.isTargetAvailable
-    },
-    {value: RowFilterType.BORDERLINE, label: 'Borderline', disabled: !this.isTargetAvailable},
-    {value: RowFilterType.CUSTOM, label: 'Custom'}
-  ];
-  filterTypesByKey = _.keyBy(this.filterTypes, e => e.value);
-  dirtyFilterValue: Filter = InspectionFilter.initFilter();
-  filter: Filter = InspectionFilter.initFilter();
-
-  private static initFilter(): Filter {
-    return {
-      type: RowFilterType.ALL
-    }
-  }
-
-  mounted() {
-    this.$emit('input', this.filter); // send an initial value outside
-  }
-
-  selectFilter(filter: FilterType) {
-    if (this.dirtyFilterValue) {
-      this.dirtyFilterValue.type = filter.value;
-      if (this.dirtyFilterValue.type !== RowFilterType.CUSTOM) {
-        this.save();
-      }
-    }
-  }
-
-  save() {
-    this.menu = false;
-    this.filter = _.cloneDeep(this.dirtyFilterValue);
-    if (this.filter) {
-      mixpanel.track('Inspection filter', {
-        'selectedFilter': this.filter.type,
-        'minThreshold': this.filter.minThreshold,
-        'maxThreshold': this.filter.maxThreshold,
-        'maxDiffThreshold': this.filter.maxDiffThreshold,
-        'minDiffThreshold': this.filter.minDiffThreshold,
-        'targetLabel': anonymize(this.filter.targetLabel),
-        'predictedLabel': anonymize(this.filter.predictedLabel),
-        'thresholdLabel': anonymize(this.filter.thresholdLabel),
-      });
-    }
-    this.$emit('input', this.filter);
+function initFilter(): Filter {
+  return {
+    type: RowFilterType.ALL
   }
 }
+
+function selectFilter(filter: FilterType) {
+    if (dirtyFilterValue.value) {
+      dirtyFilterValue.value.type = filter.value;
+      if (dirtyFilterValue.value.type !== RowFilterType.CUSTOM) {
+        save();
+      }
+    }
+}
+
+function save() {
+    menu.value = false;
+    filter.value = _.cloneDeep(dirtyFilterValue.value);
+    if (filter.value) {
+      mixpanel.track('Inspection filter', {
+        'selectedFilter': filter.value.type,
+        'minThreshold': filter.value.minThreshold,
+        'maxThreshold': filter.value.maxThreshold,
+        'maxDiffThreshold': filter.value.maxDiffThreshold,
+        'minDiffThreshold': filter.value.minDiffThreshold,
+        'targetLabel': anonymize(filter.value.targetLabel),
+        'predictedLabel': anonymize(filter.value.predictedLabel),
+        'thresholdLabel': anonymize(filter.value.thresholdLabel),
+      });
+    }
+    emit("input", filter)
+  }
+
+onMounted(() => {
+  emit("input", filter); // send an initial value outside
+});
 </script>
 
 <style scoped lang="scss">
