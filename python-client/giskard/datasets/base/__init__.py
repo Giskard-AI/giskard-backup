@@ -184,6 +184,14 @@ class Dataset(ColumnMetadataMixin):
 
         self.data_processor = DataProcessor()
 
+    def copy(self):
+        return Dataset(df=self.df.copy(),
+                       name=self.name,
+                       target=self.target,
+                       cat_columns=self.cat_columns,
+                       column_types=self.column_types,
+                       validation=False)
+
     def add_slicing_function(self, slicing_function: SlicingFunction):
         """
         Adds a slicing function to the data processor.
@@ -204,7 +212,6 @@ class Dataset(ColumnMetadataMixin):
         self.data_processor.add_step(transformation_function)
         return self
 
-
     @configured_validate_arguments
     def filter(self, mask: List[int], axis: int = 0):
         """
@@ -223,7 +230,8 @@ class Dataset(ColumnMetadataMixin):
                        name=self.name,
                        target=self.target,
                        cat_columns=self.cat_columns,
-                       column_types=self.column_types)
+                       column_types=self.column_types,
+                       validation=False)
 
     @configured_validate_arguments
     def slice(
