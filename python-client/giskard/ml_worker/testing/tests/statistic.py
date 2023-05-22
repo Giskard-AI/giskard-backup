@@ -1,6 +1,7 @@
 """Statistical tests"""
 import numpy as np
 import pandas as pd
+import inspect
 
 from giskard import test
 from giskard.datasets.base import Dataset
@@ -14,7 +15,8 @@ from ..utils import check_slice_not_empty
 @test(name="Right Label", tags=["heuristic", "classification"])
 @validate_classification_label
 def test_right_label(model: BaseModel, dataset: Dataset, classification_label: str,
-                     slicing_function: SlicingFunction = None, threshold: float = 0.5) -> TestResult:
+                     slicing_function: SlicingFunction = None, threshold: float = 0.5,
+                     debug: bool = False) -> TestResult:
     """
     Summary: Test if the model returns the right classification label for a slice
 
@@ -54,10 +56,22 @@ def test_right_label(model: BaseModel, dataset: Dataset, classification_label: s
     passed_idx = dataset.df.loc[prediction_results == classification_label].index.values
 
     passed_ratio = len(passed_idx) / len(dataset)
+    passed = bool(passed_ratio > threshold)
+
+    # --- debug ---
+    output_ds = None
+    if not passed and debug:
+        output_ds = dataset.copy()  # copy all properties
+        output_ds.df = dataset.df.loc[~dataset.df.index.isin(passed_idx)]
+        test_name = inspect.stack()[1][3]
+        output_ds.name = "Debug: " + test_name
+    # ---
+
     return TestResult(
         actual_slices_size=[len(dataset)],
         metric=passed_ratio,
-        passed=bool(passed_ratio > threshold),
+        passed=passed,
+        output_df=output_ds
     )
 
 
@@ -65,7 +79,7 @@ def test_right_label(model: BaseModel, dataset: Dataset, classification_label: s
 @validate_classification_label
 def test_output_in_range(model: BaseModel, dataset: Dataset, slicing_function: SlicingFunction = None,
                          classification_label: str = None, min_range: float = 0.3, max_range: float = 0.7,
-                         threshold: float = 0.5) -> TestResult:
+                         threshold: float = 0.5, debug: bool = False) -> TestResult:
     """
     Summary: Test if the model output belongs to the right range for a slice
 
@@ -130,18 +144,30 @@ def test_output_in_range(model: BaseModel, dataset: Dataset, slicing_function: S
         ].index.values
 
     passed_ratio = len(passed_idx) / len(dataset)
+    passed = bool(passed_ratio >= threshold)
+
+    # --- debug ---
+    output_ds = None
+    if not passed and debug:
+        output_ds = dataset.copy()  # copy all properties
+        output_ds.df = dataset.df.loc[~dataset.df.index.isin(passed_idx)]
+        test_name = inspect.stack()[1][3]
+        output_ds.name = "Debug: " + test_name
+    # ---
 
     return TestResult(
         actual_slices_size=[len(dataset)],
         metric=passed_ratio,
-        passed=bool(passed_ratio >= threshold),
+        passed=passed,
+        output_df=output_ds
     )
 
 
-# TODO: support type in the future
+@test(name="Disparate impact", tags=["heuristic", "classification"])
 def test_disparate_impact(model: BaseModel, dataset: Dataset, protected_slicing_function: SlicingFunction,
-                          unprotected_slicing_function: SlicingFunction, positive_outcome,
-                          slicing_function: SlicingFunction = None, min_threshold=0.8, max_threshold=1.25) -> TestResult:
+                          unprotected_slicing_function: SlicingFunction, positive_outcome: str,
+                          slicing_function: SlicingFunction = None, min_threshold: float = 0.8,
+                          max_threshold: float = 1.25, debug: bool = False) -> TestResult:
     """
     Summary: Tests if the model is biased more towards an unprotected slice of the dataset over a protected slice.
     Note that this test reflects only a possible bias in the model while being agnostic to any bias in the dataset
@@ -204,10 +230,11 @@ def test_disparate_impact(model: BaseModel, dataset: Dataset, protected_slicing_
             "The protected and unprotected datasets are equal. Please check that you chose different slices."
         )
 
-    positive_idx = list(model.meta.classification_labels).index(positive_outcome)
+    _protected_predictions = model.predict(protected_ds).prediction
+    _unprotected_predictions = model.predict(unprotected_ds).prediction
 
-    protected_predictions = np.squeeze(model.predict(protected_ds).raw_prediction == positive_idx)
-    unprotected_predictions = np.squeeze(model.predict(unprotected_ds).raw_prediction == positive_idx)
+    protected_predictions = np.squeeze(_protected_predictions == positive_outcome)
+    unprotected_predictions = np.squeeze(_unprotected_predictions == positive_outcome)
 
     protected_proba = np.count_nonzero(protected_predictions) / len(protected_ds.df)
     unprotected_proba = np.count_nonzero(unprotected_predictions) / len(unprotected_ds.df)
@@ -219,8 +246,25 @@ def test_disparate_impact(model: BaseModel, dataset: Dataset, protected_slicing_
         )
     ]
 
+    passed = bool((disparate_impact_score > min_threshold) * (disparate_impact_score < max_threshold))
+
+    # --- debug ---
+    failed_protected = list(_protected_predictions != protected_ds.df[dataset.target])
+    failed_unprotected = list(_unprotected_predictions != unprotected_ds.df[dataset.target])
+    failed_idx_protected = [i for i, x in enumerate(failed_protected) if x]
+    failed_idx_unprotected = [i for i, x in enumerate(failed_unprotected) if x]
+    failed_idx = failed_idx_protected + failed_idx_unprotected
+    output_ds = None
+    if not passed and debug:
+        output_ds = dataset.copy()  # copy all properties
+        output_ds.df = dataset.df.iloc[failed_idx]
+        test_name = inspect.stack()[1][3]
+        output_ds.name = "Debug: " + test_name
+    # ---
+
     return TestResult(
         metric=disparate_impact_score,
-        passed=bool((disparate_impact_score > min_threshold) * (disparate_impact_score < max_threshold)),
+        passed=passed,
         messages=messages,
+        output_df=output_ds
     )
