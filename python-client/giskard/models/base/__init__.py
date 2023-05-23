@@ -91,6 +91,11 @@ class BaseModel(ABC):
             The initialized object contains the following attributes:
                 - meta: a ModelMeta object containing metadata about the model.
         """
+        if id is None:
+            self.id = uuid.uuid4()
+        else:
+            self.id = id
+
         if type(model_type) == str:
             try:
                 model_type = SupportedModelTypes(model_type)
@@ -309,6 +314,8 @@ class BaseModel(ABC):
             if client is not None:
                 client.log_artifacts(f, posixpath.join(project_key, "models", str(self.id)))
                 client.save_model_meta(project_key, self.id, self.meta, platform.python_version(), get_size(f))
+
+        return str(self.id)
 
     @classmethod
     def download(cls, client: GiskardClient, project_key, model_id):
@@ -580,8 +587,6 @@ class MLFlowBasedModel(WrapperModel, ABC):
         MLFlow requires a target directory to be empty before the model is saved, thus we have to call
         save_with_mflow first and then save the rest of the metadata
         """
-        if not self.id:
-            self.id = uuid.uuid4()
         self.save_model(local_path, mlflow.models.Model(model_uuid=str(self.id)))
         super().save(local_path)
 
