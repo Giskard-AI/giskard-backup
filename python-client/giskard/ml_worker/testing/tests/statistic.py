@@ -10,6 +10,7 @@ from giskard.ml_worker.testing.utils import validate_classification_label
 from giskard.ml_worker.testing.registry.slicing_function import SlicingFunction
 from giskard.models.base import BaseModel
 from ..utils import check_slice_not_empty
+from typing import Union
 
 
 @test(name="Right Label", tags=["heuristic", "classification"])
@@ -165,7 +166,7 @@ def test_output_in_range(model: BaseModel, dataset: Dataset, slicing_function: S
 
 @test(name="Disparate impact", tags=["heuristic", "classification"])
 def test_disparate_impact(model: BaseModel, dataset: Dataset, protected_slicing_function: SlicingFunction,
-                          unprotected_slicing_function: SlicingFunction, positive_outcome: str,
+                          unprotected_slicing_function: SlicingFunction, positive_outcome: Union[str, float],
                           slicing_function: SlicingFunction = None, min_threshold: float = 0.8,
                           max_threshold: float = 1.25, debug: bool = False) -> TestResult:
     """
@@ -198,7 +199,7 @@ def test_disparate_impact(model: BaseModel, dataset: Dataset, protected_slicing_
               Slicing function that defines the protected group from the full dataset given
           unprotected_slicing_function:
               Slicing function that defines the unprotected group from the full dataset given
-          positive_outcome(str or float):
+          positive_outcome(str, float):
               The target value that is considered a positive outcome in the dataset
           slicing_function(SlicingFunction):
               Slicing function to be applied on the dataset

@@ -126,14 +126,14 @@ class Dataset(ColumnMetadataMixin):
 
     @configured_validate_arguments
     def __init__(
-        self,
-        df: pd.DataFrame,
-        name: Optional[str] = None,
-        target: Optional[str] = None,
-        cat_columns: Optional[List[str]] = None,
-        column_types: Optional[Dict[str, str]] = None,
-        id: Optional[uuid.UUID] = None,
-        validation=True,
+            self,
+            df: pd.DataFrame,
+            name: Optional[str] = None,
+            target: Optional[str] = None,
+            cat_columns: Optional[List[str]] = None,
+            column_types: Optional[Dict[str, str]] = None,
+            id: Optional[uuid.UUID] = None,
+            validation=True,
     ) -> None:
         """
         Initializes a Dataset object.
@@ -184,14 +184,6 @@ class Dataset(ColumnMetadataMixin):
 
         self.data_processor = DataProcessor()
 
-    def copy(self):
-        return Dataset(df=self.df.copy(),
-                       name=self.name,
-                       target=self.target,
-                       cat_columns=self.cat_columns,
-                       column_types=self.column_types,
-                       validation=False)
-
     def add_slicing_function(self, slicing_function: SlicingFunction):
         """
         Adds a slicing function to the data processor.
@@ -235,11 +227,11 @@ class Dataset(ColumnMetadataMixin):
 
     @configured_validate_arguments
     def slice(
-        self,
-        slicing_function: Union[SlicingFunction, SlicingFunctionType],
-        row_level: bool = True,
-        cell_level=False,
-        column_name: Optional[str] = None,
+            self,
+            slicing_function: Union[SlicingFunction, SlicingFunctionType],
+            row_level: bool = True,
+            cell_level=False,
+            column_name: Optional[str] = None,
     ):
         """
         Slice the dataset using the specified `slicing_function`.
@@ -270,11 +262,11 @@ class Dataset(ColumnMetadataMixin):
 
     @configured_validate_arguments
     def transform(
-        self,
-        transformation_function: Union[TransformationFunction, TransformationFunctionType],
-        row_level: bool = True,
-        cell_level=False,
-        column_name: Optional[str] = None,
+            self,
+            transformation_function: Union[TransformationFunction, TransformationFunctionType],
+            row_level: bool = True,
+            cell_level=False,
+            column_name: Optional[str] = None,
     ):
         """
         Transform the data in the current Dataset by applying a transformation function.
@@ -304,7 +296,7 @@ class Dataset(ColumnMetadataMixin):
             transformation_function = transformation_function(column_name=column_name, **transformation_function.params)
 
         assert (
-            not transformation_function.cell_level or 'column_name' in transformation_function.params
+                not transformation_function.cell_level or 'column_name' in transformation_function.params
         ), "column_name should be provided for TransformationFunction at cell level"
         return self.data_processor.add_step(transformation_function).apply(self, apply_only_last=True)
 
