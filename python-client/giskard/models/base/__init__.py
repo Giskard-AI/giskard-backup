@@ -71,6 +71,7 @@ class BaseModel(ABC):
             feature_names: Optional[Iterable] = None,
             classification_threshold: Optional[float] = 0.5,
             classification_labels: Optional[Iterable] = None,
+            id: Optional[uuid.UUID] = None,
     ) -> None:
         """
         Initialize a new instance of the BaseModel class.
@@ -92,7 +93,10 @@ class BaseModel(ABC):
                 - meta: a ModelMeta object containing metadata about the model.
         """
 
-        self.id = uuid.uuid4()
+        if id is None:
+            self.id = uuid.uuid4()
+        else:
+            self.id = id
 
         if type(model_type) == str:
             try:
@@ -366,6 +370,7 @@ class BaseModel(ABC):
         constructor_params = meta.__dict__
         del constructor_params["loader_module"]
         del constructor_params["loader_class"]
+        constructor_params['id'] = uuid.UUID(model_id)
         return clazz.load(local_dir, **constructor_params)
 
     @classmethod
