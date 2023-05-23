@@ -287,7 +287,7 @@ class BaseModel(ABC):
         """
         ...
 
-    def upload(self, client: GiskardClient, project_key, validate_ds=None) -> None:
+    def upload(self, client: GiskardClient, project_key, validate_ds=None):
         """
         Uploads the model to a Giskard project using the provided Giskard client. Also validates the model
         using the given validation dataset, if any.
