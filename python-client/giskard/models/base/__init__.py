@@ -61,7 +61,7 @@ class BaseModel(ABC):
             If duplicate values are found in the classification_labels.
     """
     should_save_model_class = False
-    id: uuid.UUID = None
+    id: uuid.UUID
 
     @configured_validate_arguments
     def __init__(
@@ -91,10 +91,8 @@ class BaseModel(ABC):
             The initialized object contains the following attributes:
                 - meta: a ModelMeta object containing metadata about the model.
         """
-        if id is None:
-            self.id = uuid.uuid4()
-        else:
-            self.id = id
+
+        self.id = uuid.uuid4()
 
         if type(model_type) == str:
             try:
@@ -167,8 +165,6 @@ class BaseModel(ABC):
             )
 
     def save(self, local_path: Union[str, Path]) -> None:
-        if self.id is None:
-            self.id = uuid.uuid4()
         if self.should_save_model_class:
             self.save_model_class(local_path)
         self.save_meta(local_path)
