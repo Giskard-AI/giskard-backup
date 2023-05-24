@@ -23,7 +23,7 @@ class TensorFlowModel(MLFlowBasedModel):
                  feature_names: Optional[Iterable] = None,
                  classification_threshold: Optional[float] = 0.5,
                  classification_labels: Optional[Iterable] = None,
-                 id: Optional[uuid.UUID] = None):
+                 id: Optional[str] = None):
         super().__init__(model=model,
                          model_type=model_type,
                          name=name,
