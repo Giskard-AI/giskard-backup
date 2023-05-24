@@ -61,9 +61,12 @@
       </v-expansion-panels>
     </v-container>
     <v-container v-if="projectArtifactsStore.datasets.length === 0 && apiAccessToken && apiAccessToken.id_token">
-      <p class="font-weight-medium secondary--text">There are no datasets in this project yet. Follow the code snippet below to upload a dataset 👇</p>
+      <p class="font-weight-medium secondary--text">There are no datasets in this project yet. Follow the code snippet
+        below to upload a dataset 👇</p>
       <CodeSnippet :code-content="codeContent" :language="'python'"></CodeSnippet>
-      <p class="mt-4 font-weight-medium secondary--text">Check out the <a href="https://docs.giskard.ai/start/~/changes/QkDrbY9gX75RDMmAWKjX/guides/upload-your-model#3.-create-a-giskard-dataset" target="_blank">full documentation</a> for more information.</p>
+      <p class="mt-4 font-weight-medium secondary--text">Check out the <a
+          href="https://docs.giskard.ai/start/~/changes/QkDrbY9gX75RDMmAWKjX/guides/upload-your-model#3.-create-a-giskard-dataset"
+          target="_blank">full documentation</a> for more information.</p>
     </v-container>
   </div>
 </template>
@@ -102,7 +105,7 @@ const filePreviewData = ref<any[]>([]);
 const apiAccessToken = ref<JWTToken | null>(null);
 
 const codeContent = computed(() =>
-  `from giskard import Dataset, GiskardClient
+    `from giskard import Dataset, GiskardClient
 from giskard.demo import titanic  # for demo purposes only 🛳️
 
 _, df = titanic()  # Replace with your dataframe creation
@@ -181,8 +184,8 @@ async function peakDataFile(id: string) {
         }
         filePreviewData.value = response.content
     } catch (error) {
-        useMainStore().addNotification({content: error.response.statusText, color: TYPE.ERROR});
-        filePreviewHeader.value = [];
+      useMainStore().addNotification({content: error.response.statusText, color: TYPE.ERROR});
+      filePreviewHeader.value = [];
         filePreviewData.value = [];
     }
   }
