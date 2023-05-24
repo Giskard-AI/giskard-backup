@@ -639,7 +639,7 @@ def test_metamorphic_decreasing_wilcoxon(
     )
 
 
-@test()
+@test(name="Increasing (Wilcoxon)")
 @validate_classification_label
 def test_metamorphic_increasing_wilcoxon(
         model: BaseModel,

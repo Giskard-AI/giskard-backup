@@ -145,9 +145,10 @@ const inputType = computed(() => chain(sortedArguments.value)
 }
 
 .modal-card {
-  max-height: 80vh;
-  display: flex;
-  flex-direction: column;
+    max-height: 80vh;
+    min-width: 72rem;
+    display: flex;
+    flex-direction: column;
 }
 
 .card-content {
