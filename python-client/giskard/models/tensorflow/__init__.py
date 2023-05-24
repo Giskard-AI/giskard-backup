@@ -2,6 +2,7 @@ import logging
 from typing import Optional, Iterable, Any, Callable
 
 import mlflow
+import uuid
 import pandas as pd
 
 from giskard.core.core import ModelType
@@ -21,7 +22,8 @@ class TensorFlowModel(MLFlowBasedModel):
                  model_postprocessing_function: Callable[[Any], Any] = None,
                  feature_names: Optional[Iterable] = None,
                  classification_threshold: Optional[float] = 0.5,
-                 classification_labels: Optional[Iterable] = None):
+                 classification_labels: Optional[Iterable] = None,
+                 id: Optional[uuid.UUID] = None):
         super().__init__(model=model,
                          model_type=model_type,
                          name=name,
@@ -29,7 +31,8 @@ class TensorFlowModel(MLFlowBasedModel):
                          model_postprocessing_function=model_postprocessing_function,
                          feature_names=feature_names,
                          classification_threshold=classification_threshold,
-                         classification_labels=classification_labels)
+                         classification_labels=classification_labels,
+                         id=id)
 
     @classmethod
     def load_model(cls, local_path):

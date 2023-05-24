@@ -1,6 +1,7 @@
 from typing import Callable, Iterable, Any, Optional
 
 import pandas as pd
+import uuid
 
 import mlflow
 from giskard.core.core import ModelType, SupportedModelTypes
@@ -29,7 +30,8 @@ class SKLearnModel(MLFlowBasedModel):
                  model_postprocessing_function: Callable[[Any], Any] = None,
                  feature_names: Optional[Iterable] = None,
                  classification_threshold: Optional[float] = 0.5,
-                 classification_labels: Optional[Iterable] = None) -> None:
+                 classification_labels: Optional[Iterable] = None,
+                 id: Optional[uuid.UUID] = None) -> None:
         """
         Constructs an instance of the SKLearnModel class with the provided arguments.
 
@@ -67,6 +69,7 @@ class SKLearnModel(MLFlowBasedModel):
             feature_names=feature_names,
             classification_threshold=classification_threshold,
             classification_labels=classification_labels,
+            id=id
         )
 
     def save_model(self, local_path, mlflow_meta):
