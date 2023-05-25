@@ -341,7 +341,7 @@ def test_drift_chi_square(actual_dataset: Dataset, reference_dataset: Dataset, c
 @test(name='Numerical drift (Kolmogorov-Smirnov)')
 def test_drift_ks(actual_dataset: Dataset, reference_dataset: Dataset, column_name: str,
                   slicing_function: SlicingFunction = None,
-                  threshold: float = 0.05, debug: bool = False) -> TestResult:
+                  threshold: float = 0.05) -> TestResult:
     """
     Test if the pvalue of the KS test between the actual and reference datasets is above
     the threshold for a given numerical feature
@@ -400,8 +400,7 @@ def test_drift_ks(actual_dataset: Dataset, reference_dataset: Dataset, column_na
 
 @test(name='Numerical drift (Earth mover\'s distance)')
 def test_drift_earth_movers_distance(actual_dataset: Dataset, reference_dataset: Dataset, column_name: str,
-                                     slicing_function: SlicingFunction = None, threshold: float = 0.2,
-                                     debug: bool = False) -> TestResult:
+                                     slicing_function: SlicingFunction = None, threshold: float = 0.2) -> TestResult:
     """
     Test if the earth movers distance between the actual and reference datasets is
     below the threshold for a given numerical feature
@@ -525,12 +524,29 @@ def test_drift_prediction_psi(model: BaseModel, actual_dataset: Dataset, referen
         threshold,
     )
 
+    # --- debug ---
+    output_ds = None
+    if not passed and debug:
+        main_drifting_modalities_bool = output_data["Psi"] > psi_contribution_percent * total_psi
+        modalities_list = output_data[main_drifting_modalities_bool]["Modality"].tolist()
+        filtered_modalities = [w for w in modalities_list if not re.match(other_modalities_pattern, w)]
+        output_ds = actual_dataset.copy()  # copy all properties
+        output_ds.df = actual_dataset.df.loc[prediction_actual.isin(filtered_modalities).values]
+        test_name = inspect.stack()[0][3]
+        if output_ds.df.empty:
+            raise ValueError(
+                test_name + f": the categories {filtered_modalities} completely drifted as they are not present in the "
+                            f"'actual_dataset'")
+        output_ds.name = "Debug: " + test_name
+    # ---
+
     return TestResult(
         actual_slices_size=[len(actual_dataset)],
         reference_slices_size=[len(reference_dataset)],
         passed=passed,
         metric=total_psi,
         messages=messages,
+        output_df=output_ds
     )
 
 
@@ -624,12 +640,25 @@ def test_drift_prediction_chi_square(model: BaseModel, actual_dataset: Dataset, 
         threshold,
     )
 
+    # --- debug ---
+    output_ds = None
+    if not passed and debug:
+        main_drifting_modalities_bool = output_data["Chi_square"] > chi_square_contribution_percent * chi_square
+        modalities_list = output_data[main_drifting_modalities_bool]["Modality"].tolist()
+        filtered_modalities = [w for w in modalities_list if not re.match(other_modalities_pattern, w)]
+        output_ds = actual_dataset.copy()  # copy all properties
+        output_ds.df = actual_dataset.df.loc[prediction_actual.isin(filtered_modalities).values]
+        test_name = inspect.stack()[0][3]
+        output_ds.name = "Debug: " + test_name
+    # ---
+
     return TestResult(
         actual_slices_size=[len(actual_dataset)],
         reference_slices_size=[len(reference_dataset)],
         passed=passed,
         metric=p_value,
         messages=messages,
+        output_df=output_ds
     )
 
 
@@ -652,7 +681,7 @@ def _test_series_drift_chi(
 @validate_classification_label
 def test_drift_prediction_ks(model: BaseModel, actual_dataset: Dataset, reference_dataset: Dataset,
                              slicing_function: SlicingFunction = None, classification_label: str = None,
-                             threshold: float = None, debug: bool = False) -> TestResult:
+                             threshold: float = None) -> TestResult:
     """
     Test if the pvalue of the KS test for prediction between the reference and actual datasets for
      a given subpopulation is above the threshold
