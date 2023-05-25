@@ -39,7 +39,7 @@ from giskard.ml_worker.testing.registry.slicing_function import SlicingFunction
 from giskard.ml_worker.testing.registry.transformation_function import TransformationFunction
 from giskard.models.base import BaseModel
 from giskard.path_utils import model_path, dataset_path
-from ml_worker_pb2 import ArtifactRef, FuncArgument
+from giskard.ml_worker.generated.ml_worker_pb2 import ArtifactRef, FuncArgument
 
 logger = logging.getLogger(__name__)
 
