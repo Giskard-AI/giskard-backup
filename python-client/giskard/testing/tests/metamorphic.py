@@ -4,7 +4,7 @@ import inspect
 from giskard import test
 from giskard.core.core import SupportedModelTypes
 from giskard.datasets.base import Dataset
-from giskard.ml_worker.core.test_result import TestResult, TestMessage, TestMessageLevel
+from giskard.ml_worker.testing.test_result import TestResult, TestMessage, TestMessageLevel
 from giskard.ml_worker.testing.registry.slicing_function import SlicingFunction
 from giskard.ml_worker.testing.registry.transformation_function import TransformationFunction
 from giskard.ml_worker.testing.stat_utils import equivalence_t_test, paired_t_test
@@ -12,7 +12,7 @@ from giskard.ml_worker.testing.stat_utils import equivalence_wilcoxon, paired_wi
 from giskard.ml_worker.testing.utils import Direction, validate_classification_label
 from giskard.ml_worker.utils.logging import timer
 from giskard.models.base import BaseModel
-from ..utils import check_slice_not_empty
+from giskard.ml_worker.testing.utils import check_slice_not_empty
 
 
 def _predict_numeric_result(model: BaseModel, ds: Dataset, output_proba=True, classification_label=None):
@@ -171,7 +171,7 @@ def _test_metamorphic(model, direction: Direction, dataset: Dataset, transformat
 @test(name="Invariance (proportion)")
 def test_metamorphic_invariance(model: BaseModel, dataset: Dataset, transformation_function: TransformationFunction,
                                 slicing_function: SlicingFunction = None, threshold: float = 0.5,
-                                output_sensitivity: float = None, debug: bool = False) -> TestResult:
+                                output_sensitivity: float = None, debug: bool = False):
     """
     Summary: Tests if the model prediction is invariant when the feature values are perturbed
 
