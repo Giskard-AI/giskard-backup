@@ -16,13 +16,12 @@ from sklearn.metrics import (
 
 from giskard import test
 from giskard.datasets.base import Dataset
-from giskard.ml_worker.testing.test_result import TestResult
 from giskard.ml_worker.testing.registry.slicing_function import SlicingFunction
+from giskard.ml_worker.testing.test_result import TestResult
 from giskard.ml_worker.testing.utils import Direction
 from giskard.ml_worker.testing.utils import check_slice_not_empty
 from giskard.models.base import BaseModel
-from giskard.ml_worker.testing.utils import check_slice_not_empty
-from giskard.models.utils import np_types_to_native, np_type_to_native
+from giskard.models.utils import np_type_to_native
 from .debug_slicing_functions import incorrect_rows_slicing_fn, nlargest_abs_err_rows_slicing_fn
 
 

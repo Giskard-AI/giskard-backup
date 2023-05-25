@@ -1,13 +1,13 @@
 import inspect
+import logging
 from importlib import import_module
 from typing import Callable, Optional, Iterable, Any
 
 import pandas as pd
-import logging
 
 from giskard.core.core import ModelType
-from giskard.models.function import PredictionFunctionModel
 from giskard.core.validation import configured_validate_arguments
+from giskard.models.function import PredictionFunctionModel
 
 logger = logging.getLogger(__name__)
 
