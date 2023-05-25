@@ -1,9 +1,9 @@
 import pandas as pd
 import pytest
 
-from giskard.ml_worker.testing.tests.metamorphic import test_metamorphic_invariance, test_metamorphic_increasing, \
-    test_metamorphic_decreasing
 from giskard.ml_worker.testing.registry.transformation_function import transformation_function
+from giskard.testing.tests.metamorphic import test_metamorphic_invariance, test_metamorphic_increasing, \
+    test_metamorphic_decreasing
 
 
 @pytest.mark.parametrize(

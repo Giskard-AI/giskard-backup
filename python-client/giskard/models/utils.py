@@ -1,6 +1,7 @@
 import itertools
 from collections.abc import Iterator
 from typing import List
+
 import numpy as np
 
 

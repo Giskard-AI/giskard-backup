@@ -1,9 +1,8 @@
 from typing import Callable, Iterable, Any, Optional
 
-import pandas as pd
-import uuid
-
 import mlflow
+import pandas as pd
+
 from giskard.core.core import ModelType, SupportedModelTypes
 from giskard.core.validation import configured_validate_arguments
 from giskard.models.base import MLFlowBasedModel
