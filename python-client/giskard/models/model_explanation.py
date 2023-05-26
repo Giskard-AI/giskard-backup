@@ -8,9 +8,9 @@ import pandas as pd
 import shap
 from eli5.lime import TextExplainer
 
-from giskard.models.base import BaseModel
 from giskard.datasets.base import Dataset
 from giskard.ml_worker.utils.logging import timer
+from giskard.models.base import BaseModel
 
 logger = logging.getLogger(__name__)
 
