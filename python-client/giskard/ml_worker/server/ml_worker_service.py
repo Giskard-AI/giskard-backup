@@ -382,7 +382,9 @@ class MLWorkerServiceImpl(MLWorkerServicer):
 
     def runModelForDataFrame(self, request: ml_worker_pb2.RunModelForDataFrameRequest, context):
         model = BaseModel.download(self.client, request.model.project_key, request.model.id)
-        ds = Dataset(pd.DataFrame([r.columns for r in request.dataframe.rows]), target=None,
+        df = pd.DataFrame.from_records([r.columns for r in request.dataframe.rows])
+        ds = Dataset(model.prepare_dataframe(df, column_dtypes=request.column_dtypes),
+                     target=None,
                      column_types=request.column_types)
         predictions = model.predict(ds)
         if model.is_classification:
